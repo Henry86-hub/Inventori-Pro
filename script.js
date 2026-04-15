@@ -519,3 +519,137 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
   renderContent();
 });
+// Tambahkan di bagian atas script.js, setelah state declaration
+
+// Mobile Sidebar Management
+function initMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.createElement('div');
+  overlay.className = 'sidebar-overlay';
+  document.body.appendChild(overlay);
+  
+  // Create mobile header with hamburger
+  const mainContent = document.getElementById('mainContent');
+  const mobileHeader = document.createElement('div');
+  mobileHeader.className = 'mobile-header';
+  mobileHeader.innerHTML = `
+    <button class="hamburger" id="mobileMenuBtn">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div style="flex: 1;"></div>
+  `;
+  
+  // Insert mobile header before content
+  const insertMobileHeader = () => {
+    const existingHeader = document.querySelector('.mobile-header');
+    if (!existingHeader && window.innerWidth <= 768) {
+      const pageHeader = document.querySelector('.page-header');
+      if (pageHeader) {
+        pageHeader.parentNode.insertBefore(mobileHeader, pageHeader);
+      }
+    }
+  };
+  
+  // Toggle sidebar
+  const toggleSidebar = () => {
+    sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('active');
+    document.body.style.overflow = sidebar.classList.contains('mobile-open') ? 'hidden' : '';
+  };
+  
+  // Event listeners
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#mobileMenuBtn')) {
+      toggleSidebar();
+    }
+  });
+  
+  overlay.addEventListener('click', toggleSidebar);
+  
+  // Close sidebar on window resize if mobile
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      sidebar.classList.remove('mobile-open');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+      const mobileHeaderEl = document.querySelector('.mobile-header');
+      if (mobileHeaderEl) mobileHeaderEl.remove();
+    } else {
+      insertMobileHeader();
+    }
+  });
+  
+  // Initial check
+  if (window.innerWidth <= 768) {
+    insertMobileHeader();
+  }
+  
+  // Close sidebar when clicking nav items on mobile
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      if (window.innerWidth <= 768) {
+        toggleSidebar();
+      }
+    });
+  });
+}
+
+// Update renderContent untuk mobile
+const originalRenderContent = renderContent;
+renderContent = function() {
+  originalRenderContent();
+  
+  // Re-insert mobile header if needed
+  if (window.innerWidth <= 768) {
+    const existingMobileHeader = document.querySelector('.mobile-header');
+    if (!existingMobileHeader) {
+      const mobileHeader = document.createElement('div');
+      mobileHeader.className = 'mobile-header';
+      mobileHeader.innerHTML = `
+        <button class="hamburger" id="mobileMenuBtn">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div style="flex: 1;"></div>
+      `;
+      
+      const mainContent = document.getElementById('mainContent');
+      const pageHeader = mainContent.querySelector('.page-header');
+      if (pageHeader) {
+        mainContent.insertBefore(mobileHeader, pageHeader);
+      }
+    }
+  }
+  
+  attachEventListeners();
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  initNavigation();
+  initMobileSidebar();
+  renderContent();
+});
+
+// Add collapse functionality for desktop
+function initDesktopCollapse() {
+  const sidebar = document.getElementById('sidebar');
+  const logo = document.querySelector('.logo');
+  
+  // Double click logo to collapse
+  logo?.addEventListener('dblclick', () => {
+    if (window.innerWidth > 768) {
+      sidebar.classList.toggle('collapsed');
+      localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+    }
+  });
+  
+  // Restore collapse state
+  const savedState = localStorage.getItem('sidebarCollapsed');
+  if (savedState === 'true' && window.innerWidth > 768) {
+    sidebar.classList.add('collapsed');
+  }
+}
+
+// Call desktop collapse
+initDesktopCollapse();
